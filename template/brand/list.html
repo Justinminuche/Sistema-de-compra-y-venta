@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-container">
+
+  <h1 class="page-title"><span class="bar">|</span> {{ title2|upper }}</h1>
+
+  <!-- Buscador -->
+  <form method="get" class="search-box">
+      <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar marca...">
+      <button type="submit" class="btn-search">Buscar</button>
+  </form>
+
+  <!-- Tabla -->
+  <table class="modern-table">
+      <thead>
+          <tr>
+              <th>Descripción</th>
+              <th class="text-center">Acciones</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for item in brands %}
+          <tr>
+              <td>{{ item.description }}</td>
+              <td class="action-cell">
+                  <a href="{% url 'commerce:brand_update' item.id %}" class="action-btn edit">✏️</a>
+                  <a href="{% url 'commerce:brand_delete' item.id %}" class="action-btn delete">🗑️</a>
+              </td>
+          </tr>
+          {% empty %}
+          <tr>
+              <td colspan="2" class="empty-msg">No hay marcas registradas.</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+
+  <div class="btn-container">
+      <a class="btn-create" href="{% url 'commerce:brand_create' %}">+ Nueva Marca</a>
+  </div>
+
+</div>
+
+<style>
+/* --- Contenedor principal --- */
+.main-container {
+    margin: 30px auto;
+    width: 85%;
+}
+
+/* --- Título con barra azul como proveedores --- */
+.page-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0d6efd;
+    margin-bottom: 25px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+.page-title .bar {
+    color: #0d6efd;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+/* --- Buscador --- */
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.search-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+.btn-search {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.btn-search:hover {
+    background: #2980b9;
+}
+
+/* --- Tabla --- */
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.modern-table th {
+    background: #3498db;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+.modern-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+.modern-table tr:hover {
+    background: #f9f9f9;
+}
+
+.text-center { text-align: center; }
+
+/* --- Acciones --- */
+.action-cell {
+    text-align: center;
+}
+.action-btn {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 17px;
+    text-decoration: none;
+    margin: 0 4px;
+}
+.action-btn.edit {
+    background: #f1c40f;
+}
+.action-btn.delete {
+    background: #e74c3c;
+    color: white;
+}
+
+/* --- Vacío --- */
+.empty-msg {
+    text-align: center;
+    padding: 15px;
+    color: #7f8c8d;
+}
+
+/* --- Botón nueva marca --- */
+.btn-container {
+    text-align: right;
+    margin-top: 15px;
+}
+.btn-create {
+    background: #27ae60;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
+.btn-create:hover {
+    background: #1e8449;
+}
+</style>
+
+{% endblock %}
+

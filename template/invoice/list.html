@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  .table-container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  }
+  .styled-table thead {
+      background: #0d6efd;
+      color: white;
+  }
+  .styled-table th, 
+  .styled-table td {
+      padding: 12px 15px !important;
+      vertical-align: middle;
+  }
+  .styled-table tr:hover {
+      background: #f2f6ff;
+  }
+  .title {
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #0d6efd;
+      border-left: 5px solid #0d6efd;
+      padding-left: 10px;
+  }
+  form input {
+      width: 280px;
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+  }
+  form button {
+      padding: 8px 15px;
+      border-radius: 6px;
+      background: #0d6efd;
+      border: none;
+      color: white;
+  }
+  form button:hover {
+      background: #0b57d0;
+  }
+  .blue {
+      background: #0d6efd;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+  }
+  .blue:hover {
+      background: #0b57d0;
+      color: #fff;
+  }
+</style>
+
+
+<div class="table-container">
+  <br>
+  <h1 class="title">{{ title2|upper }}</h1>
+
+  <form method="get" class="mb-3 d-flex gap-2">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por cliente, fecha o método de pago">
+    <button type="submit">Buscar</button>
+  </form>
+
+  <table class="table table-bordered table-hover styled-table">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Método de Pago</th>
+        <th>Fecha Emisión</th>
+        <th>Subtotal</th>
+        <th>IVA</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for item in invoices %}
+      <tr>
+        <td>{{ item.customer.get_full_name }}</td>
+        <td>{{ item.get_payment_method_display }}</td>
+        <td>{{ item.issue_date|date:"d/m/Y H:i" }}</td>
+        <td>${{ item.subtotal|floatformat:2 }}</td>
+        <td>${{ item.iva|floatformat:2 }}</td>
+        <td><strong>${{ item.total|floatformat:2 }}</strong></td>
+
+        <td class="text-center">
+          {% if item.state %}
+            <span class="badge bg-success">Activo</span>
+          {% else %}
+            <span class="badge bg-danger">Anulado</span>
+          {% endif %}
+        </td>
+
+        <td class="text-center">
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-primary view-detail" 
+            data-id="{{ item.id }}">
+            🔎 Ver
+          </button>
+
+          <a class="btn btn-sm btn-outline-warning" href="{% url 'commerce:invoice_update' item.id %}" title="Editar">✏️</a>
+        </td>
+      </tr>
+
+      {% empty %}
+      <tr>
+        <td colspan="8" class="text-center py-3">No hay facturas registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="mt-3">
+    <a class="btn blue" href="{% url 'commerce:invoice_create' %}">➕ Nueva Factura</a>
+  </div>
+</div>
+
+<!-- ===================== MODAL DETALLE (AJAX) ===================== -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function getCookie(name) {
+    const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return match ? match.pop() : '';
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const modalEl = document.getElementById('invoiceModal');
+  const modal = new bootstrap.Modal(modalEl);
+  const modalContent = document.getElementById('modalContent');
+
+  const detailBase = "{% url 'commerce:invoice_detail' 0 %}".replace('0/', '');
+  const deleteBase = "{% url 'commerce:invoice_delete' 0 %}".replace('0/', '');
+  const annulBase  = "{% url 'commerce:invoice_annul' 0 %}".replace('0/', '');
+
+  document.querySelectorAll('.view-detail').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      if (!id) return alert('ID no disponible.');
+
+      try {
+        const res = await fetch(`${detailBase}${id}/`, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!res.ok) throw new Error('Error al cargar detalle');
+        
+        const data = await res.json();
+        modalContent.innerHTML = data.html || '<div class="p-4">No hay contenido.</div>';
+        modal.show();
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo cargar el detalle.');
+      }
+    });
+  });
+
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+
+    let url, label;
+    if (action === 'delete') { url = deleteBase; label = 'eliminar'; }
+    else if (action === 'annul') { url = annulBase; label = 'anular'; }
+    else return;
+
+    if (!confirm(`¿Desea ${label} la factura N° ${id}?`)) return;
+
+    try {
+      const resp = await fetch(`${url}${id}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      const json = await resp.json().catch(() => ({}));
+      if (resp.ok) {
+        alert(json.msg || 'Acción exitosa.');
+        modal.hide();
+        location.reload();
+      } else {
+        alert(json.msg || `Error ${resp.status}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ocurrió un error.');
+    }
+  });
+
+});
+</script>
+
+{% endblock content %}
+
