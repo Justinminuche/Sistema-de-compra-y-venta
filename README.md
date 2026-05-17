@@ -41,3 +41,6 @@ Siguientes pasos sugeridos
 - Poner `SECRET_KEY` en variables de entorno para producción.
 
 Si quieres que configure PDF automático con `wkhtmltopdf` (recomendado por estabilidad), puedo guiarte para instalar el binario y adaptar la vista a `pdfkit`.
+
+## Mejoras implementadas
+- Validación de autenticación
