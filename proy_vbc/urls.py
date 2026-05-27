@@ -5,22 +5,18 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.static import static
-from django.views.generic import RedirectView  # <-- AGREGAMOS ESTA IMPORTACIÓN
-
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(username='admin_final').exists():
-    User.objects.create_superuser('admin_final', 'admin@correo.com', 'Admin12345*')
+# Importamos la vista del Home que tienes en tu app core
+from core.views import HomeTemplateView 
 
 urlpatterns = [
-    # 1. LA RAÍZ REAL AHORA REDIRIGE DIRECTO AL LOGIN DEL ADMIN
-    path('', RedirectView.as_view(url='/admin/', permanent=False)),
+    # 1. LA RAÍZ AHORA SÍ CARGA TU SITIO WEB (EL DASHBOARD HERMOSO)
+    path('', HomeTemplateView.as_view(), name='home'),
     
-    # 2. EL PANEL DE CONTROL
+    # 2. EL PANEL DE CONTROL DE ADMINISTRACIÓN
     path('admin/', admin.site.urls),
     
-    # 3. LAS RUTAS DE TUS APPLICACIONES CON UN PREFIJO PARA QUE NO CHOQUEN CON LA RAÍZ
-    path('sistema/', include('core.urls', namespace='core')),
-    path('tienda/', include('commerce.urls', namespace='commerce')),
+    # 3. LAS RUTAS DE TUS APLICACIONES (Mantenemos los includes nativos)
+    path('core/', include('core.urls', namespace='core')),
+    path('commerce/', include('commerce.urls', namespace='commerce')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

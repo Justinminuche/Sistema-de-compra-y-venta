@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView
-# QUITAMOS EL LOGINREQUIREDMIXIN DE AQUÍ
+# Restauramos el candado oficial para que asocie correctamente tu usuario admin local
+from django.contrib.auth.mixins import LoginRequiredMixin
 from core.mixins import TitleContextMixin
 from core.forms import SupplierForm
 from .models import Supplier, Product, Customer, Brand
@@ -22,17 +23,26 @@ class HomeTemplateView(TitleContextMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["suppliers"] = Supplier.objects.count()
-        context["brands"] = Brand.objects.count()
-        context["products"] = Product.objects.count()
-        context["customers"] = Customer.objects.count()
-        context["invoices"] = Invoice.objects.count()
-        context["purchases"] = Purchase.objects.count()
+        # Controlamos con un try/except por si abres el dashboard y la base de datos local está en cero
+        try:
+            context["suppliers"] = Supplier.objects.count()
+            context["brands"] = Brand.objects.count()
+            context["products"] = Product.objects.count()
+            context["customers"] = Customer.objects.count()
+            context["invoices"] = Invoice.objects.count()
+            context["purchases"] = Purchase.objects.count()
+        except Exception:
+            context["suppliers"] = 0
+            context["brands"] = 0
+            context["products"] = 0
+            context["customers"] = 0
+            context["invoices"] = 0
+            context["purchases"] = 0
         return context
 
 
-# 1. LE QUITAMOS EL LOGINREQUIREDMIXIN A LA LISTA
-class SupplierListView(TitleContextMixin, ListView): 
+# 1. Regresa el LoginRequiredMixin
+class SupplierListView(LoginRequiredMixin, TitleContextMixin, ListView): 
     model = Supplier 
     template_name = 'supplier/list.html' 
     context_object_name = 'suppliers'     
@@ -48,8 +58,8 @@ class SupplierListView(TitleContextMixin, ListView):
         return queryset
     
 
-# 2. LE QUITAMOS EL LOGINREQUIREDMIXIN AL CREAR
-class SupplierCreateView(TitleContextMixin, CreateView):
+# 2. Regresa el LoginRequiredMixin
+class SupplierCreateView(LoginRequiredMixin, TitleContextMixin, CreateView):
     model = Supplier
     form_class = SupplierForm
     template_name = "supplier/form.html"
@@ -58,14 +68,13 @@ class SupplierCreateView(TitleContextMixin, CreateView):
     title2 = 'Crear Nuevo Proveedor VBC'
           
     def form_valid(self, form):
-        # Si el formulario te da error de usuario anónimo, usamos el primer usuario de la BD o lo dejamos libre
-        if self.request.user.is_authenticated:
-            form.instance.user = self.request.user
+        # Asigna de manera segura el usuario logueado en tu PC
+        form.instance.user = self.request.user
         return super().form_valid(form)
 
 
-# 3. LE QUITAMOS EL LOGINREQUIREDMIXIN AL EDITAR
-class SupplierUpdateView(TitleContextMixin, UpdateView):
+# 3. Regresa el LoginRequiredMixin
+class SupplierUpdateView(LoginRequiredMixin, TitleContextMixin, UpdateView):
     model = Supplier
     form_class = SupplierForm
     template_name = "supplier/form.html"
@@ -74,13 +83,12 @@ class SupplierUpdateView(TitleContextMixin, UpdateView):
     title2 = 'Editar Proveedor'
    
     def form_valid(self, form):
-        if self.request.user.is_authenticated:
-            form.instance.user = self.request.user
+        form.instance.user = self.request.user
         return super().form_valid(form)
 
 
-# 4. LE QUITAMOS EL LOGINREQUIREDMIXIN AL DETALLE
-class SupplierDetailView(TitleContextMixin, DetailView):
+# 4. Regresa el LoginRequiredMixin
+class SupplierDetailView(LoginRequiredMixin, TitleContextMixin, DetailView):
     model = Supplier
     template_name = "supplier/detail.html"
     context_object_name = "supplier"  
@@ -89,8 +97,8 @@ class SupplierDetailView(TitleContextMixin, DetailView):
     success_url = reverse_lazy("core:supplier_list")
 
 
-# 5. LE QUITAMOS EL LOGINREQUIREDMIXIN AL ELIMINAR
-class SupplierDeleteView(TitleContextMixin, DeleteView):
+# 5. Regresa el LoginRequiredMixin
+class SupplierDeleteView(LoginRequiredMixin, TitleContextMixin, DeleteView):
     model = Supplier
     template_name = "supplier/delete.html"
     success_url = reverse_lazy("core:supplier_list") 
