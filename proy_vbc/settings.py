@@ -29,7 +29,7 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
 # Allow hosts from comma-separated env var, default empty list (localhost during dev)
 _allowed = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()] if _allowed else []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'proy_vbc.urls'
@@ -104,12 +105,14 @@ if DB_ENGINE in ('postgresql', 'psycopg2', 'django.db.backends.postgresql') or (
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://neondb_owner:npg_wVlC9OPuL5xD@ep-tiny-water-apuwpl5j.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require',
+        conn_max_age=600
+    )
+}
 
 #-------------
 # Password validation
