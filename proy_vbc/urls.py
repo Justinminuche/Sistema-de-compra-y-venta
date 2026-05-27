@@ -7,6 +7,11 @@ from django.urls import include, path
 from django.conf.urls.static import static
 from django.views.generic import RedirectView  # <-- AGREGAMOS ESTA IMPORTACIÓN
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin_final').exists():
+    User.objects.create_superuser('admin_final', 'admin@correo.com', 'Admin12345*')
+
 urlpatterns = [
     # 1. LA RAÍZ REAL AHORA REDIRIGE DIRECTO AL LOGIN DEL ADMIN
     path('', RedirectView.as_view(url='/admin/', permanent=False)),
