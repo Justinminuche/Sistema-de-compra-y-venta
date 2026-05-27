@@ -163,3 +163,4 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://sistema-de-compra-y-venta.onrender.com']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
