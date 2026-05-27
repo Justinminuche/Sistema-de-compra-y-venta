@@ -29,7 +29,7 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
 # Allow hosts from comma-separated env var, default empty list (localhost during dev)
 _allowed = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = ['sistema-de-compra-y-venta.onrender.com', 'localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['un-enlace-falso-para-probar.com']
 
 
 # Application definition
