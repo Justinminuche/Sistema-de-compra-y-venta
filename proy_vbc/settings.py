@@ -39,13 +39,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Se movió arriba para evitar conflictos de diseño
-    'django.contrib.sessions.middleware.SessionMiddleware', # ¡ACTIVADO! Es vital para el funcionamiento del sitio
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware', # ¡ACTIVADO LOCALMENTE! Ya no te dará error porque estás en tu computadora
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'proy_vbc.urls'
